@@ -1,0 +1,126 @@
+---
+title: "Children Under 5 Years of Age Who are Overweight"
+subtitle: "BMI-for-age which is between >+2 Standard Deviations and ≤+3 Standard Deviations"
+author: "Tamara Valentina Moroz"
+date: "04/30/2023"
+format: html 
+execute:
+  echo: false
+  warning: false
+  message: false
+  
+---
+
+
+```{r}
+#| label: setup
+#| include: false
+
+library(tidyverse)
+
+unicef_metadata <- read.csv("/cloud/project/unicef_metadata.csv")
+
+unicef_indicator_2 <- read.csv("/cloud/project/unicef_indicator_2.csv") 
+
+table_1 <- unicef_metadata
+
+table_2 <- unicef_indicator_2
+
+table_2 <- table_2 %>% 
+  mutate(year = as.integer(year))
+manual_join <- full_join(table_1, table_2, by = c("country", "year"))
+
+install.packages("maps")
+library(maps)
+
+```
+
+
+## Nutrition
+
+For children to develop and survive, it is crucial that they have good nutrition. Unfortunately, many children across the world are currently not getting the nutrition that they require to survive and thrive. Worse still, it is typically the most poor and vulnerable children who are most impacted by this *(Unicef, 2023)*. As can be seen from **visualisation 4**, in 2019 many of the countries with the highest populations were not the wealthiest of economies. While, life expectancy worldwide has grown between 1960 and 2021 as shown in **visualisation 2**, **visualisation 1** displays that there is in fact a positive correlation between the GDP per capita and the life expectancy of countries.  
+
+
+
+## Overweight
+
+### Overview
+
+A person is said to be overweight if they are too heavy for their height. According to *Unicef (2023)*, approximately 39 million children globally under the age of 5 face an increased risk of being overweight. They highlight that this can create problems in children such as low-self esteem and depression. 
+
+### Causes
+According to the *World Health Organisation (2021)*, becoming overweight results from an imbalance of too much energy consumed and too little energy expended. They highlight that people across the world are consuming foods and drinks that are high in sugars and fats as well as engaging less in physical activity.
+
+
+
+## BMI 
+Children with a BMI-for-age which is between >+2 standard deviations and <+3 standard deviations are considered to be overweight. BMI is an index of weight-for-height that commonly allows us to classify people who are overweight. Moreover, children who are overweight when they are young are more likely to be overweight when they will be adults *(NHS, 2023)*.
+
+
+## Visualisations 
+
+```{r}
+ggplot(data = manual_join) +
+  aes(x = GDPperCapita, y = Life_expectancy) +
+  geom_point()+
+  labs(
+    x = "GDP Per Capita",
+    y = "Life Expectancy",
+    title = "Visualisation 1: Life Expectancy Based GDP Per Capita of Countries")+
+  theme_light()+
+  geom_smooth(method = "lm")
+
+```
+
+
+```{r}
+ggplot(data = manual_join) +
+  aes(x = year, y = Life_expectancy, color = country) +
+  geom_line() +
+  guides(color ="none")+
+  labs(
+    x = "Year",
+    y = "Life Expectancy",
+    title = "Visualisation 2: Evolution of Life Expectancy from 1960 to 2021")+
+  theme_light()
+```
+
+
+```{r}
+ggplot(data = manual_join %>% filter(sex %in% c("Male", "Female"))) +
+  aes(x = year, y = obs_value, colour = sex) +
+  geom_col() +
+  labs(
+    x = "Year",
+    y = "Observation Value",
+    title = "Visualisation 3: % of Overweight Females and Males Under Age 5 Globally"
+  ) +
+  theme_light()
+
+```
+
+
+
+```{r}
+
+options(scipen = 999)
+
+pop_2019 <- manual_join %>% 
+  filter(year == 2019)
+
+map_world <- map_data("world") 
+
+map_pop_2019 <- full_join(map_world, pop_2019, by = c("region" = "country"))
+
+ggplot(data = map_pop_2019) +
+  aes(x = long, y = lat, group = group, fill = population) +
+  geom_polygon()+
+  labs(
+    x = "Longitude",
+    y = "Latitude",
+    title = "Visualisation 4: Population of Countries in 2019")+
+  theme_light()
+
+```
+
+
